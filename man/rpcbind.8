@@ -131,6 +131,14 @@ to use non-privileged ports for outgoing connections, preventing non-privileged
 clients from using
 .Nm
 to connect to services from a privileged port.
+.It Fl w
+Cause
+.Nm
+to do a "warm start" by read a state file when
+.Nm
+starts up. The state file is created when
+.Nm
+terminates.
 .El
 .Sh NOTES
 All RPC servers must be restarted if

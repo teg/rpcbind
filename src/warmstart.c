@@ -46,17 +46,21 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "rpcbind.h"
 
 /*
  * XXX this code is unsafe and is not used. It should be made safe.
  */
 
+#ifndef RPCBIND_STATEDIR
+#define RPCBIND_STATEDIR "/tmp"
+#endif
 
 /* These files keep the pmap_list and rpcb_list in XDR format */
-#define	RPCBFILE	"/tmp/rpcbind.file"
+#define	RPCBFILE	RPCBIND_STATEDIR "/rpcbind.file"
 #ifdef PORTMAP
-#define	PMAPFILE	"/tmp/portmap.file"
+#define	PMAPFILE	RPCBIND_STATEDIR "/portmap.file"
 #endif
 
 static bool_t write_struct __P((char *, xdrproc_t, void *));

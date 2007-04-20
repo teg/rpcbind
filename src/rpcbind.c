@@ -68,6 +68,7 @@
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
+#include "config.h"
 #include "rpcbind.h"
 
 /*#define RPCBIND_DEBUG*/
@@ -79,6 +80,11 @@ int doabort = 0;	/* When debugging, do an abort on errors */
 
 rpcblist_ptr list_rbl;	/* A list of version 3/4 rpcbind services */
 
+#ifdef RPCBIND_USER
+char *rpcbinduser = RPCBIND_USER;
+#else
+char *rpcbinduser = NULL;
+#endif
 
 /* who to suid to if -s is given */
 #define RUN_AS  "daemon"
@@ -206,15 +212,16 @@ main(int argc, char *argv[])
         		err(1, "fork failed");
 	}
 
-	if (runasdaemon) {
+	if (runasdaemon || rpcbinduser) {
 		struct passwd *p;
+		char *id = runasdaemon ? RUN_AS : rpcbinduser;
 
-		if((p = getpwnam(RUN_AS)) == NULL) {
-			syslog(LOG_ERR, "cannot get uid of daemon: %m");
+		if((p = getpwnam(id)) == NULL) {
+			syslog(LOG_ERR, "cannot get uid of '%s': %m", id);
 			exit(1);
 		}
 		if (setuid(p->pw_uid) == -1) {
-			syslog(LOG_ERR, "setuid to daemon failed: %m");
+			syslog(LOG_ERR, "setuid to '%s' failed: %m", id);
 			exit(1);
 		}
 	}

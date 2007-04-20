@@ -37,6 +37,12 @@ if test "$warmstarts" = "true" ; then
 		AC_SUBST(statedir)
 	AC_DEFINE_UNQUOTED(RPCBIND_STATEDIR, "$statedir", [This defines the location where the state files will be kept for warm starts])
 fi
+AC_ARG_WITH(rpcuser,
+	[  --with-rpcuser=user uid to use [root]],
+	rpcuser=$withval,
+	rpcuser=root)
+	AC_SUBST(rpcuser)
+AC_DEFINE_UNQUOTED(RPCBIND_USER, "$rpcuser", [This defines the uid to run as])
 
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h \
                   netinet/in.h stdlib.h string.h \

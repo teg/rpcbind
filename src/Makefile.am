@@ -9,6 +9,10 @@ if WARMSTART
 INCLUDES +=	-DWARMSTART
 endif
 
+if LIBWRAP
+INCLUDES +=	-DLIBWRAP
+endif
+
 
 bin_PROGRAMS = rpcbind rpcinfo
 

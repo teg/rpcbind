@@ -49,18 +49,14 @@
 #include "config.h"
 #include "rpcbind.h"
 
-/*
- * XXX this code is unsafe and is not used. It should be made safe.
- */
-
 #ifndef RPCBIND_STATEDIR
 #define RPCBIND_STATEDIR "/tmp"
 #endif
 
 /* These files keep the pmap_list and rpcb_list in XDR format */
-#define	RPCBFILE	RPCBIND_STATEDIR "/rpcbind.file"
+#define	RPCBFILE	RPCBIND_STATEDIR "/rpcbind.xdr"
 #ifdef PORTMAP
-#define	PMAPFILE	RPCBIND_STATEDIR "/portmap.file"
+#define	PMAPFILE	RPCBIND_STATEDIR "/portmap.xdr"
 #endif
 
 static bool_t write_struct __P((char *, xdrproc_t, void *));
@@ -107,13 +103,14 @@ read_struct(char *filename, xdrproc_t structproc, void *list)
 	FILE *fp;
 	XDR xdrs;
 	struct stat sbuf;
-
+	extern uid_t rpc_uid;
+	 
 	if (stat(filename, &sbuf) != 0) {
 		fprintf(stderr,
 		"rpcbind: cannot stat file = %s for reading\n", filename);
 		goto error;
 	}
-	if ((sbuf.st_uid != 0) || (sbuf.st_mode & S_IRWXG) ||
+	if ((sbuf.st_uid != rpc_uid) || (sbuf.st_mode & S_IRWXG) ||
 	    (sbuf.st_mode & S_IRWXO)) {
 		fprintf(stderr,
 		"rpcbind: invalid permissions on file = %s for reading\n",
@@ -163,17 +160,17 @@ read_warmstart()
 	ok1 = read_struct(RPCBFILE, (xdrproc_t)xdr_rpcblist_ptr, &tmp_rpcbl);
 	if (ok1 == FALSE)
 		return;
-	#ifdef PORTMAP
+#ifdef PORTMAP
 	ok2 = read_struct(PMAPFILE, (xdrproc_t)xdr_pmaplist_ptr, &tmp_pmapl);
-	#endif
+#endif
 	if (ok2 == FALSE) {
 		xdr_free((xdrproc_t) xdr_rpcblist_ptr, (char *)&tmp_rpcbl);
 		return;
 	}
 	xdr_free((xdrproc_t) xdr_rpcblist_ptr, (char *)&list_rbl);
 	list_rbl = tmp_rpcbl;
-	#ifdef PORTMAP
+#ifdef PORTMAP
 	xdr_free((xdrproc_t) xdr_pmaplist_ptr, (char *)&list_pml);
 	list_pml = tmp_pmapl;
-	#endif
+#endif
 }

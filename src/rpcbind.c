@@ -85,6 +85,7 @@ char *rpcbinduser = RPCBIND_USER;
 #else
 char *rpcbinduser = NULL;
 #endif
+uid_t rpc_uid;
 
 /* who to suid to if -s is given */
 #define RUN_AS  "daemon"
@@ -193,11 +194,7 @@ main(int argc, char *argv[])
 	(void) signal(SIGHUP, SIG_IGN);
 	(void) signal(SIGUSR1, SIG_IGN);
 	(void) signal(SIGUSR2, SIG_IGN);
-#ifdef WARMSTART
-	if (warmstart) {
-		read_warmstart();
-	}
-#endif
+
 	if (debugging) {
 #ifdef RPCBIND_DEBUG 
 		printf("rpcbind debugging enabled.");
@@ -212,6 +209,7 @@ main(int argc, char *argv[])
         		err(1, "fork failed");
 	}
 
+	rpc_uid = 0;
 	if (runasdaemon || rpcbinduser) {
 		struct passwd *p;
 		char *id = runasdaemon ? RUN_AS : rpcbinduser;
@@ -224,7 +222,14 @@ main(int argc, char *argv[])
 			syslog(LOG_ERR, "setuid to '%s' failed: %m", id);
 			exit(1);
 		}
+		rpc_uid = p->pw_uid;
 	}
+
+#ifdef WARMSTART
+	if (warmstart) {
+		read_warmstart();
+	}
+#endif
 
 	network_init();
 

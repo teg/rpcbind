@@ -314,7 +314,7 @@ pmapproc_getport(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 			if ((pt2 = strrchr(ua, '.')) != NULL) {
 				*pt2 = 0;
 				snprintf(serveuaddr, sizeof serveuaddr,
-			 		"%s.%d.%d", ua,
+			 		"%s.%ld.%ld", ua,
 					(fnd->pml_map.pm_port >> 8) & 0xff,
 			 		(fnd->pml_map.pm_port) & 0xff);
 				*pt2 = '.';

@@ -45,6 +45,7 @@
 #endif
 #include <syslog.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "config.h"
 #include "rpcbind.h"
@@ -88,7 +89,7 @@ write_struct(char *filename, xdrproc_t structproc, void *list)
 	xdrstdio_create(&xdrs, fp, XDR_ENCODE);
 
 	if (structproc(&xdrs, list) == FALSE) {
-		syslog(LOG_ERR, "rpcbind: xdr_%s: failed", filename);
+		syslog(LOG_ERR, "xdr_%s: failed", filename);
 		fclose(fp);
 		return (FALSE);
 	}
@@ -103,38 +104,39 @@ read_struct(char *filename, xdrproc_t structproc, void *list)
 	FILE *fp;
 	XDR xdrs;
 	struct stat sbuf;
-	extern uid_t rpc_uid;
 	 
-	if (stat(filename, &sbuf) != 0) {
-		fprintf(stderr,
-		"rpcbind: cannot stat file = %s for reading\n", filename);
-		goto error;
-	}
-	if ((sbuf.st_uid != rpc_uid) || (sbuf.st_mode & S_IRWXG) ||
-	    (sbuf.st_mode & S_IRWXO)) {
-		fprintf(stderr,
-		"rpcbind: invalid permissions on file = %s for reading\n",
-			filename);
-		goto error;
-	}
-	fp = fopen(filename, "r");
-	if (fp == NULL) {
-		fprintf(stderr,
-		"rpcbind: cannot open file = %s for reading\n", filename);
-		goto error;
-	}
-	xdrstdio_create(&xdrs, fp, XDR_DECODE);
+	if (debugging)
+		fprintf(stderr, "rpcbind: using '%s' startup file\n", filename);
 
+	if ((fp = fopen(filename, "r")) == NULL) {
+		syslog(LOG_ERR,
+			"Cannot open '%s' file for reading, errno %d (%s)", 
+			filename, errno, strerror(errno));
+		goto error;
+	}
+
+	xdrstdio_create(&xdrs, fp, XDR_DECODE);
 	if (structproc(&xdrs, list) == FALSE) {
 		fprintf(stderr, "rpcbind: xdr_%s: failed\n", filename);
 		fclose(fp);
 		goto error;
 	}
 	XDR_DESTROY(&xdrs);
+
 	fclose(fp);
+	if (unlink(filename) < 0) {
+		syslog(LOG_ERR, "Cannot unlink '%s', errno %d (%s)", 
+			filename, errno, strerror(errno));
+	}
 	return (TRUE);
 
-error:	fprintf(stderr, "rpcbind: will start from scratch\n");
+error:	
+	if (errno != ENOENT && unlink(filename) < 0) {
+		syslog(LOG_ERR, "Cannot unlink '%s', errno %d (%s)", 
+			filename, errno, strerror(errno));
+	}
+	if (debugging)
+		fprintf(stderr, "rpcbind: will start from scratch\n");
 	return (FALSE);
 }
 
@@ -142,9 +144,9 @@ void
 write_warmstart()
 {
 	(void) write_struct(RPCBFILE, (xdrproc_t)xdr_rpcblist_ptr, &list_rbl);
-	#ifdef PORTMAP
-		(void) write_struct(PMAPFILE, (xdrproc_t)xdr_pmaplist_ptr, &list_pml);
-	#endif
+#ifdef PORTMAP
+	(void) write_struct(PMAPFILE, (xdrproc_t)xdr_pmaplist_ptr, &list_pml);
+#endif
 
 }
 
@@ -155,22 +157,20 @@ read_warmstart()
 #ifdef PORTMAP
 	struct pmaplist *tmp_pmapl = NULL;
 #endif
-	int ok1, ok2 = TRUE;
+	int rc;
 
-	ok1 = read_struct(RPCBFILE, (xdrproc_t)xdr_rpcblist_ptr, &tmp_rpcbl);
-	if (ok1 == FALSE)
-		return;
-#ifdef PORTMAP
-	ok2 = read_struct(PMAPFILE, (xdrproc_t)xdr_pmaplist_ptr, &tmp_pmapl);
-#endif
-	if (ok2 == FALSE) {
-		xdr_free((xdrproc_t) xdr_rpcblist_ptr, (char *)&tmp_rpcbl);
-		return;
+	rc = read_struct(RPCBFILE, (xdrproc_t)xdr_rpcblist_ptr, &tmp_rpcbl);
+	if (rc == TRUE) {
+		xdr_free((xdrproc_t) xdr_rpcblist_ptr, (char *)&list_rbl);
+		list_rbl = tmp_rpcbl;
 	}
-	xdr_free((xdrproc_t) xdr_rpcblist_ptr, (char *)&list_rbl);
-	list_rbl = tmp_rpcbl;
 #ifdef PORTMAP
-	xdr_free((xdrproc_t) xdr_pmaplist_ptr, (char *)&list_pml);
-	list_pml = tmp_pmapl;
+	rc = read_struct(PMAPFILE, (xdrproc_t)xdr_pmaplist_ptr, &tmp_pmapl);
+	if (rc == TRUE) {
+		xdr_free((xdrproc_t) xdr_pmaplist_ptr, (char *)&list_pml);
+		list_pml = tmp_pmapl;
+	}
 #endif
+
+	return;
 }

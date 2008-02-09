@@ -95,3 +95,11 @@
 
 /* Version number of package */
 #undef VERSION
+
+/* This defines the location where the state files will be kept for warm
+   starts */
+#undef RPCBIND_STATEDIR
+
+/* This defines the uid to run as */
+#undef RPCBIND_USER
+

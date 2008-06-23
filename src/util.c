@@ -359,7 +359,8 @@ network_init()
 	 * interface, join the RPC multicast group on that interface.
 	 */
 	for (ifap = ifp; ifap != NULL; ifap = ifap->ifa_next) {
-		if (ifap->ifa_addr->sa_family != AF_INET6 ||
+		if (!ifap->ifa_addr ||
+		    ifap->ifa_addr->sa_family != AF_INET6 ||
 		    !(ifap->ifa_flags & IFF_MULTICAST))
 			continue;
 		ifindex = if_nametoindex(ifap->ifa_name);

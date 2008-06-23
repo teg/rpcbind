@@ -216,8 +216,12 @@ main(int argc, char *argv[])
 			syslog(LOG_ERR, "cannot get uid of '%s': %m", id);
 			exit(1);
 		}
+                if (setgid(p->pw_gid) == -1) {
+                        syslog(LOG_ERR, "setgid to '%s' (%d) failed: %m", id, p->pw_gid);
+                        exit(1);
+                }
 		if (setuid(p->pw_uid) == -1) {
-			syslog(LOG_ERR, "setuid to '%s' failed: %m", id);
+			syslog(LOG_ERR, "setuid to '%s' (%d) failed: %m", id, p->pw_uid);
 			exit(1);
 		}
 	}

@@ -739,7 +739,7 @@ parseargs(int argc, char *argv[])
 {
 	int c;
 	oldstyle_local = 1;
-	while ((c = getopt(argc, argv, "dwah:ilLs")) != -1) {
+	while ((c = getopt(argc, argv, "dwah:ils")) != -1) {
 		switch (c) {
 		case 'a':
 			doabort = 1;	/* when debugging, do an abort on */

@@ -115,10 +115,6 @@ accepts these requests only from the loopback interface for security reasons.
 This change is necessary for programs that were compiled with earlier
 versions of the rpc library and do not make those requests using the
 loopback interface.
-.It Fl L
-Allow old-style local connections over the loopback interface.
-Without this flag, local connections are only allowed over a local socket,
-.Pa /var/run/rpcbind.sock .
 .It Fl l
 Turn on libwrap connection logging.
 .It Fl s

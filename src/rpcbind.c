@@ -155,6 +155,13 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Sorry. You are not superuser\n");
 		exit(1);
 	}
+
+	/*
+	 * Make sure we use the local service file 
+	 * for service lookkups
+	 */
+	__nss_configure_lookup("services", "files");
+
 	nc_handle = setnetconfig(); 	/* open netconfig file */
 	if (nc_handle == NULL) {
 		syslog(LOG_ERR, "could not read /etc/netconfig");
@@ -211,6 +218,12 @@ main(int argc, char *argv[])
 	if (runasdaemon || rpcbinduser) {
 		struct passwd *p;
 		char *id = runasdaemon ? RUN_AS : rpcbinduser;
+
+		/*
+		 * Make sure we use the local password file
+		 * for these lookups.
+		 */
+		__nss_configure_lookup("passwd", "files");
 
 		if((p = getpwnam(id)) == NULL) {
 			syslog(LOG_ERR, "cannot get uid of '%s': %m", id);

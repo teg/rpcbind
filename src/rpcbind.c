@@ -167,10 +167,6 @@ main(int argc, char *argv[])
 		syslog(LOG_ERR, "could not read /etc/netconfig");
 		exit(1);
 	}
-#ifdef PORTMAP
-	udptrans = "";
-	tcptrans = "";
-#endif
 
 	nconf = getnetconfigent("local");
 	if (nconf == NULL)
@@ -189,6 +185,13 @@ main(int argc, char *argv[])
 			init_transport(nconf);
 	}
 	endnetconfig(nc_handle);
+
+#ifdef PORTMAP
+	if (!udptrans)
+		udptrans = "";
+	if (!tcptrans)
+		tcptrans = "";
+#endif
 
 	/* catch the usual termination signals for graceful exit */
 	(void) signal(SIGCHLD, reap);
@@ -545,15 +548,12 @@ init_transport(struct netconfig *nconf)
 
 #ifdef PORTMAP
 	/*
-	 * Register both the versions for tcp/ip, udp/ip and local.
+	 * Register both the versions for tcp/ip, udp/ip.
 	 */
-	if (((strcmp(nconf->nc_protofmly, NC_INET) == 0 ||
-	      strcmp(nconf->nc_protofmly, NC_INET6) == 0) &&
-		(strcmp(nconf->nc_proto, NC_TCP) == 0 ||
-		strcmp(nconf->nc_proto, NC_UDP) == 0)) ||
-		(strcmp(nconf->nc_netid, "unix") == 0) ||
-		(strcmp(nconf->nc_netid, "local") == 0)) {
+	if (si.si_af == AF_INET &&
+	    (si.si_proto == IPPROTO_TCP || si.si_proto == IPPROTO_UDP)) {
 		struct pmaplist *pml;
+
 		if (!svc_register(my_xprt, PMAPPROG, PMAPVERS,
 			pmap_service, 0)) {
 			syslog(LOG_ERR, "could not register on %s",
@@ -568,30 +568,18 @@ init_transport(struct netconfig *nconf)
 		pml->pml_map.pm_prog = PMAPPROG;
 		pml->pml_map.pm_vers = PMAPVERS;
 		pml->pml_map.pm_port = PMAPPORT;
-		if (strcmp(nconf->nc_proto, NC_TCP) == 0) {
-			if (tcptrans[0]) {
-				syslog(LOG_ERR,
-				"cannot have more than one TCP transport");
-				goto error;
-			}
+		pml->pml_map.pm_prot = si.si_proto;
+
+		/* Stash away the universal address */
+		switch (si.si_proto) {
+		case IPPROTO_TCP:
 			tcptrans = strdup(nconf->nc_netid);
-			pml->pml_map.pm_prot = IPPROTO_TCP;
-
-			/* Let's snarf the universal address */
-			/* "h1.h2.h3.h4.p1.p2" */
 			tcp_uaddr = taddr2uaddr(nconf, &taddr.addr);
-		} else if (strcmp(nconf->nc_proto, NC_UDP) == 0) {
-			if (udptrans[0]) {
-				syslog(LOG_ERR,
-				"cannot have more than one UDP transport");
-				goto error;
-			}
+			break;
+		case IPPROTO_UDP:
 			udptrans = strdup(nconf->nc_netid);
-			pml->pml_map.pm_prot = IPPROTO_UDP;
-
-			/* Let's snarf the universal address */
-			/* "h1.h2.h3.h4.p1.p2" */
 			udp_uaddr = taddr2uaddr(nconf, &taddr.addr);
+			break;
 		} 
                 pml->pml_next = list_pml;
 		list_pml = pml;

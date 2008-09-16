@@ -78,6 +78,8 @@ extern char *udptrans;		/* Name of UDP transport */
 extern char *tcptrans;		/* Name of TCP transport */
 extern char *udp_uaddr;		/* Universal UDP address */
 extern char *tcp_uaddr;		/* Universal TCP address */
+extern char *pmap_ipprot2netid(unsigned long);
+extern int pmap_netid2ipprot(const char *);
 #endif
 
 int add_bndlist(struct netconfig *, struct netbuf *);

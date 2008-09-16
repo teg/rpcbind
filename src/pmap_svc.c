@@ -211,11 +211,8 @@ pmapproc_change(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt, unsigned long
 	if (op == PMAPPROC_SET) {
 		char buf[32];
 
-		if (reg.pm_prot == IPPROTO_UDP) {
-			rpcbreg.r_netid = udptrans;
-		} else if (reg.pm_prot == IPPROTO_TCP) {
-			rpcbreg.r_netid = tcptrans;
-		} else {
+		rpcbreg.r_netid = pmap_ipprot2netid(reg.pm_prot);
+		if (rpcbreg.r_netid == NULL) {
 			ans = FALSE;
 			goto done_change;
 		}
@@ -289,7 +286,8 @@ pmapproc_getport(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 			    svc_getrpccaller(xprt));
 		fprintf(stderr, "PMAP_GETPORT req for (%lu, %lu, %s) from %s :",
 			reg.pm_prog, reg.pm_vers,
-			reg.pm_prot == IPPROTO_UDP ? "udp" : "tcp", uaddr);
+			pmap_ipprot2netid(reg.pm_prot)?: "<invalid>",
+			uaddr);
 		free(uaddr);
 	}
 #endif
@@ -299,12 +297,13 @@ pmapproc_getport(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 		char *pt1, *pt2;
 		char *netid;
 
+		netid = pmap_ipprot2netid(reg.pm_prot);
+		if (netid == NULL)
+			goto sendreply;
 		if (reg.pm_prot == IPPROTO_UDP) {
 			ua = udp_uaddr;
-			netid = udptrans;
 		} else {
 			ua = tcp_uaddr; /* To get the len */
-			netid = tcptrans;
 		}
 		if (ua == NULL) {
 			goto sendreply;
@@ -341,7 +340,7 @@ sendreply:
 		fprintf(stderr, "port = %d\n", port);
 #endif
 	rpcbs_getaddr(RPCBVERS_2_STAT, reg.pm_prog, reg.pm_vers,
-		reg.pm_prot == IPPROTO_UDP ? udptrans : tcptrans,
+		pmap_ipprot2netid(reg.pm_prot) ?: "<unknown>",
 		port ? udptrans : "");
 
 	return (TRUE);
@@ -370,6 +369,26 @@ pmapproc_dump(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 		}
 	}
 	return (TRUE);
+}
+
+int pmap_netid2ipprot(const char *netid)
+{
+	if (!netid)
+		return 0;
+	if (strcmp(netid, tcptrans) == 0)
+		return IPPROTO_TCP;
+	if (strcmp(netid, udptrans) == 0)
+		return IPPROTO_UDP;
+	return 0;
+}
+
+char *pmap_ipprot2netid(unsigned long proto)
+{
+	if (proto == IPPROTO_UDP)
+		return udptrans;
+	if (proto == IPPROTO_TCP)
+		return tcptrans;
+	return NULL;
 }
 
 #endif /* PORTMAP */

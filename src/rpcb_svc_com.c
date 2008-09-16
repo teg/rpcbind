@@ -1416,13 +1416,8 @@ add_pmaplist(RPCB *arg)
 	struct pmap pmap;
 	struct pmaplist *pml;
 
-	if (strcmp(arg->r_netid, udptrans) == 0) {
-		/* It is UDP! */
-		pmap.pm_prot = IPPROTO_UDP;
-	} else if (strcmp(arg->r_netid, tcptrans) == 0) {
-		/* It is TCP */
-		pmap.pm_prot = IPPROTO_TCP;
-	} else
+	pmap.pm_prot = pmap_netid2ipprot(arg->r_netid);
+	if (!pmap.pm_prot)
 		/* Not an IP protocol */
 		return (0);
 
@@ -1464,15 +1459,10 @@ del_pmaplist(RPCB *arg)
 	struct pmaplist *prevpml, *fnd;
 	unsigned long prot;
 
-	if (strcmp(arg->r_netid, udptrans) == 0) {
-		/* It is UDP! */
-		prot = IPPROTO_UDP;
-	} else if (strcmp(arg->r_netid, tcptrans) == 0) {
-		/* It is TCP */
-		prot = IPPROTO_TCP;
-	} else if (arg->r_netid[0] == 0) {
+	if (arg->r_netid[0] == 0) {
 		prot = 0;	/* Remove all occurrences */
-	} else {
+	} else
+	if ((prot = pmap_netid2ipprot(arg->r_netid)) == 0) {
 		/* Not an IP protocol */
 		return (0);
 	}

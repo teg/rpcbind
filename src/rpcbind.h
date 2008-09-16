@@ -76,8 +76,6 @@ extern rpcblist_ptr list_rbl;	/* A list of version 3 & 4 rpcbind services */
 extern struct pmaplist *list_pml; /* A list of version 2 rpcbind services */
 extern char *udptrans;		/* Name of UDP transport */
 extern char *tcptrans;		/* Name of TCP transport */
-extern char *udp_uaddr;		/* Universal UDP address */
-extern char *tcp_uaddr;		/* Universal TCP address */
 extern char *pmap_ipprot2netid(unsigned long);
 extern int pmap_netid2ipprot(const char *);
 #endif

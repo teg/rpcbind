@@ -293,40 +293,24 @@ pmapproc_getport(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 #endif
 	fnd = find_service_pmap(reg.pm_prog, reg.pm_vers, reg.pm_prot);
 	if (fnd) {
-		char serveuaddr[32], *ua;
-		char *pt1, *pt2;
+		char serveuaddr[32];
 		char *netid;
 
 		netid = pmap_ipprot2netid(reg.pm_prot);
-		if (netid == NULL)
-			goto sendreply;
-		if (reg.pm_prot == IPPROTO_UDP) {
-			ua = udp_uaddr;
-		} else {
-			ua = tcp_uaddr; /* To get the len */
-		}
-		if (ua == NULL) {
-			goto sendreply;
-		}
-		if ((pt1 = strrchr(ua, '.')) != NULL) {
-			*pt1 = 0;
-			if ((pt2 = strrchr(ua, '.')) != NULL) {
-				*pt2 = 0;
-				snprintf(serveuaddr, sizeof serveuaddr,
-			 		"%s.%ld.%ld", ua,
-					(fnd->pml_map.pm_port >> 8) & 0xff,
-			 		(fnd->pml_map.pm_port) & 0xff);
-				*pt2 = '.';
-				if (is_bound(netid, serveuaddr)) {
-					port = fnd->pml_map.pm_port;
-				} else { /* this service is dead; delete it */
-					delete_prog(reg.pm_prog);
-				}
+		if (netid != NULL) {
+			snprintf(serveuaddr, sizeof serveuaddr,
+				"0.0.0.0.%ld.%ld",
+				(fnd->pml_map.pm_port >> 8) & 0xff,
+				(fnd->pml_map.pm_port) & 0xff);
+
+			if (is_bound(netid, serveuaddr)) {
+				port = fnd->pml_map.pm_port;
+			} else { /* this service is dead; delete it */
+				delete_prog(reg.pm_prog);
 			}
-			*pt1 = '.';
 		}
 	}
-sendreply:
+
 	lport = port;
 	if ((!svc_sendreply(xprt, (xdrproc_t) xdr_long, (caddr_t)&lport)) &&
 			debugging) {

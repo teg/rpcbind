@@ -570,18 +570,15 @@ init_transport(struct netconfig *nconf)
 		pml->pml_map.pm_port = PMAPPORT;
 		pml->pml_map.pm_prot = si.si_proto;
 
-		/* Stash away the universal address */
 		switch (si.si_proto) {
 		case IPPROTO_TCP:
 			tcptrans = strdup(nconf->nc_netid);
-			tcp_uaddr = taddr2uaddr(nconf, &taddr.addr);
 			break;
 		case IPPROTO_UDP:
 			udptrans = strdup(nconf->nc_netid);
-			udp_uaddr = taddr2uaddr(nconf, &taddr.addr);
 			break;
 		} 
-                pml->pml_next = list_pml;
+		pml->pml_next = list_pml;
 		list_pml = pml;
 
 		/* Add version 3 information */

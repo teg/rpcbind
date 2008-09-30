@@ -554,12 +554,6 @@ init_transport(struct netconfig *nconf)
 	    (si.si_proto == IPPROTO_TCP || si.si_proto == IPPROTO_UDP)) {
 		struct pmaplist *pml;
 
-		if (!svc_register(my_xprt, PMAPPROG, PMAPVERS,
-			pmap_service, 0)) {
-			syslog(LOG_ERR, "could not register on %s",
-					nconf->nc_netid);
-			goto error;
-		}
 		pml = malloc(sizeof (struct pmaplist));
 		if (pml == NULL) {
 			syslog(LOG_ERR, "no memory!");
@@ -605,6 +599,19 @@ init_transport(struct netconfig *nconf)
 
 		/* Also add version 2 stuff to rpcbind list */
 		rbllist_add(PMAPPROG, PMAPVERS, nconf, &taddr.addr);
+	}
+
+	/* We need to support portmap over IPv4. It makes sense to
+	 * support it over AF_LOCAL as well, because that allows
+	 * rpcbind to identify the owner of a socket much better
+	 * than by relying on privileged ports to tell root from
+	 * non-root users. */
+	if (si.si_af == AF_INET || si.si_af == AF_LOCAL) {
+		if (!svc_register(my_xprt, PMAPPROG, PMAPVERS, pmap_service, 0)) {
+			syslog(LOG_ERR, "could not register on %s",
+					nconf->nc_netid);
+			goto error;
+		}
 	}
 #endif
 

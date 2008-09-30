@@ -175,16 +175,16 @@ pmapproc_change(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt, unsigned long
 	uid_t uid;
 	char uidbuf[32];
 
+	if (!svc_getargs(xprt, (xdrproc_t) xdr_pmap, (char *)&reg)) {
+		svcerr_decode(xprt);
+		return (FALSE);
+	}
 #ifdef RPCBIND_DEBUG
 	if (debugging)
 	  fprintf(stderr, "%s request for (%lu, %lu) : ",
 		  op == PMAPPROC_SET ? "PMAP_SET" : "PMAP_UNSET",
 		  reg.pm_prog, reg.pm_vers);
 #endif
-	if (!svc_getargs(xprt, (xdrproc_t) xdr_pmap, (char *)&reg)) {
-		svcerr_decode(xprt);
-		return (FALSE);
-	}
 
 	if (!check_access(xprt, op, &reg, PMAPVERS)) {
 		svcerr_weakauth(xprt);

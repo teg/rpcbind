@@ -138,16 +138,18 @@ is_loopback(struct netbuf *nbuf)
 #ifdef INET6
 	struct sockaddr_in6 *sin6;
 #endif
-#ifdef RPCBIND_DEBUG
-	if (debugging)
-	  fprintf(stderr,"Checking caller's adress (port = 0x%x)\n",
-			  ((struct sockaddr_in *)addr)->sin_port);
-#endif
+
 	switch (addr->sa_family) {
 	case AF_INET:
 		if (!oldstyle_local)
 			return 0;
 		sin = (struct sockaddr_in *)addr;
+#ifdef RPCBIND_DEBUG
+		if (debugging)
+			  fprintf(stderr,
+				  "Checking caller's adress (port = %d)\n",
+				  ntohs(sin->sin_port));
+#endif
 	       	return ((sin->sin_addr.s_addr == htonl(INADDR_LOOPBACK)) &&
 		    (ntohs(sin->sin_port) < IPPORT_RESERVED));
 #ifdef INET6
@@ -155,6 +157,12 @@ is_loopback(struct netbuf *nbuf)
 		if (!oldstyle_local)
 			return 0;
 		sin6 = (struct sockaddr_in6 *)addr;
+#ifdef RPCBIND_DEBUG
+		if (debugging)
+			  fprintf(stderr,
+				  "Checking caller's adress (port = %d)\n",
+				  ntohs(sin6->sin6_port));
+#endif
 		return ((IN6_IS_ADDR_LOOPBACK(&sin6->sin6_addr) ||
 			 (IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr) &&
 			  sin6->sin6_addr.s6_addr32[3] == htonl(INADDR_LOOPBACK))) &&

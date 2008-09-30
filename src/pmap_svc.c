@@ -175,6 +175,22 @@ pmapproc_change(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt, unsigned long
 	uid_t uid;
 	char uidbuf[32];
 
+	/*
+	 * Can't use getpwnam here. We might end up calling ourselves
+	 * and looping.
+	 */
+	if (__rpc_get_local_uid(xprt, &uid) < 0) {
+		rpcbreg.r_owner = "unknown";
+		if (is_localroot(svc_getrpccaller(xprt)))
+			rpcbreg.r_owner = "superuser";
+	} else if (uid == 0)
+		rpcbreg.r_owner = "superuser";
+	else {
+		/* r_owner will be strdup-ed later */
+		snprintf(uidbuf, sizeof uidbuf, "%d", uid);
+		rpcbreg.r_owner = uidbuf;
+	}
+
 	if (!svc_getargs(xprt, (xdrproc_t) xdr_pmap, (char *)&reg)) {
 		svcerr_decode(xprt);
 		return (FALSE);
@@ -191,20 +207,6 @@ pmapproc_change(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt, unsigned long
 		return (FALSE);
 	}
 		
-	/*
-	 * Can't use getpwnam here. We might end up calling ourselves
-	 * and looping.
-	 */
-	if (__rpc_get_local_uid(xprt, &uid) < 0)
-		rpcbreg.r_owner = "unknown";
-	else if (uid == 0)
-		rpcbreg.r_owner = "superuser";
-	else {
-		/* r_owner will be strdup-ed later */
-		snprintf(uidbuf, sizeof uidbuf, "%d", uid);
-		rpcbreg.r_owner = uidbuf;
-	}
-
 	rpcbreg.r_prog = reg.pm_prog;
 	rpcbreg.r_vers = reg.pm_vers;
 

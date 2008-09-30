@@ -124,6 +124,7 @@ int check_access(SVCXPRT *, rpcproc_t, void *, unsigned int);
 int check_callit(SVCXPRT *, struct r_rmtcall_args *, int);
 void logit(int, struct sockaddr *, rpcproc_t, rpcprog_t, const char *);
 int is_loopback(struct netbuf *);
+int is_localroot(struct netbuf *);
 
 #ifdef PORTMAP
 extern void pmap_service(struct svc_req *, SVCXPRT *);

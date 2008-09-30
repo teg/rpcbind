@@ -177,6 +177,43 @@ is_loopback(struct netbuf *nbuf)
 	return 0;
 }
 
+/*
+ * For IPv4/v6, this is exactly the same as is_loopback for now.
+ * The difference is that this returns false for other transports.
+ */
+int
+is_localroot(struct netbuf *nbuf)
+{
+	struct sockaddr *addr = (struct sockaddr *)nbuf->buf;
+	struct sockaddr_in *sin;
+#ifdef INET6
+	struct sockaddr_in6 *sin6;
+#endif
+
+	switch (addr->sa_family) {
+	case AF_INET:
+		if (!oldstyle_local)
+			return 0;
+		sin = (struct sockaddr_in *)addr;
+		return ((sin->sin_addr.s_addr == htonl(INADDR_LOOPBACK)) &&
+		    (ntohs(sin->sin_port) < IPPORT_RESERVED));
+#ifdef INET6
+	case AF_INET6:
+		if (!oldstyle_local)
+			return 0;
+		sin6 = (struct sockaddr_in6 *)addr;
+		return ((IN6_IS_ADDR_LOOPBACK(&sin6->sin6_addr) ||
+			 (IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr) &&
+			  sin6->sin6_addr.s6_addr32[3] == htonl(INADDR_LOOPBACK))) &&
+		        (ntohs(sin6->sin6_port) < IPV6PORT_RESERVED));
+#endif
+	default:
+		break;
+	}
+
+	return 0;
+}
+
 
 /* logit - report events of interest via the syslog daemon */
 void

@@ -161,14 +161,50 @@ read_warmstart()
 
 	rc = read_struct(RPCBFILE, (xdrproc_t)xdr_rpcblist_ptr, &tmp_rpcbl);
 	if (rc == TRUE) {
-		xdr_free((xdrproc_t) xdr_rpcblist_ptr, (char *)&list_rbl);
-		list_rbl = tmp_rpcbl;
+		rpcblist *pos, **tail;
+
+		/* The current rpcblist contains only the registrations
+		 * for rpcbind and portmap. We keep those, since the
+		 * info from the warm start file may be stale if the
+		 * netconfig file was changed in the meantime.
+		 * From the warm start file, we weed out any rpcbind info.
+		 */
+		for (tail = &list_rbl; *tail; tail = &(*tail)->rpcb_next)
+			;
+		while ((pos = tmp_rpcbl) != NULL) {
+			tmp_rpcbl = pos->rpcb_next;
+			if (pos->rpcb_map.r_prog != RPCBPROG) {
+				*tail = pos;
+				tail = &pos->rpcb_next;
+			} else {
+				free(pos);
+			}
+		}
+		*tail = NULL;
 	}
 #ifdef PORTMAP
 	rc = read_struct(PMAPFILE, (xdrproc_t)xdr_pmaplist_ptr, &tmp_pmapl);
 	if (rc == TRUE) {
-		xdr_free((xdrproc_t) xdr_pmaplist_ptr, (char *)&list_pml);
-		list_pml = tmp_pmapl;
+		struct pmaplist *pos, **tail;
+
+		/* The current pmaplist contains only the registrations
+		 * for rpcbind and portmap. We keep those, since the
+		 * info from the warm start file may be stale if the
+		 * netconfig file was changed in the meantime.
+		 * From the warm start file, we weed out any rpcbind info.
+		 */
+		for (tail = &list_pml; *tail; tail = &(*tail)->pml_next)
+			;
+		while ((pos = tmp_pmapl) != NULL) {
+			tmp_pmapl = pos->pml_next;
+			if (pos->pml_map.pm_prog != PMAPPROG) {
+				*tail = pos;
+				tail = &pos->pml_next;
+			} else {
+				free(pos);
+			}
+		}
+		*tail = NULL;
 	}
 #endif
 

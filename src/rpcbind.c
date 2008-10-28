@@ -68,6 +68,7 @@
 #include <pwd.h>
 #include <string.h>
 #include <errno.h>
+#include <nss.h>
 #include "config.h"
 #include "rpcbind.h"
 

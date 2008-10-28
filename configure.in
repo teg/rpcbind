@@ -48,7 +48,7 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h netdb.h \
                   netinet/in.h stdlib.h string.h \
                   sys/param.h sys/socket.h \
                   sys/time.h syslog.h \
-                  unistd.h])                    
+                  unistd.h nss.h])
 
 AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([tirpc], [clnt_create])

@@ -663,7 +663,7 @@ sa_len(struct sockaddr *sa)
     switch (sa->sa_family)
     {
         case AF_LOCAL:
-            salen = (socklen_t) (((struct sockaddr_un *) NULL)->sun_path);
+            salen = sizeof (struct sockaddr_un);
             break;
         case AF_INET:
             salen = sizeof (struct sockaddr_in);

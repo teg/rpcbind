@@ -31,9 +31,4 @@ rpcbind_LDFLAGS = -lpthread -ltirpc
 rpcbind_LDADD = $(LIB_TIRPC)
 AM_CPPFLAGS = -I/usr/include/tirpc -DCHECK_LOCAL -DPORTMAP \
                        -DFACILITY=LOG_MAIL -DSEVERITY=LOG_INFO
-
-$(rpcbind_OBJECTS) :    security.o util.o check_bound.o pmap_svc.o \
-                        rpcb_svc.o rpcb_svc_com.o rpcb_svc_4.o \
-                        rpcb_stat.o rpcbind.o warmstart.o 
-$(rpcinfo_OBJECTS) :    rpcinfo.o                       
      

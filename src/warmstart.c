@@ -103,7 +103,6 @@ read_struct(char *filename, xdrproc_t structproc, void *list)
 {
 	FILE *fp;
 	XDR xdrs;
-	struct stat sbuf;
 	 
 	if (debugging)
 		fprintf(stderr, "rpcbind: using '%s' startup file\n", filename);

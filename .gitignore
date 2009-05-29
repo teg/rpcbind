@@ -1,0 +1,30 @@
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.guess
+config.h
+config.h.in
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+man/Makefile
+man/Makefile.in
+missing
+src/.deps/
+src/Makefile
+src/Makefile.in
+src/config.h
+src/stamp-h2
+stamp-h1
+# file generated during compilation
+*.o
+src/rpcbind
+src/rpcinfo
+# cscope database files
+cscope.*

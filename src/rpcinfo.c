@@ -1465,7 +1465,7 @@ addrping (address, netid, argc, argv)
   CLIENT *client;
   struct timeval to;
   enum clnt_stat rpc_stat;
-  u_long prognum, versnum, minvers, maxvers;
+  u_int32_t prognum, versnum, minvers, maxvers;
   struct rpc_err rpcerr;
   int failure = 0;
   struct netconfig *nconf;

@@ -731,7 +731,7 @@ parseargs(int argc, char *argv[])
 {
 	int c;
 	oldstyle_local = 1;
-	while ((c = getopt(argc, argv, "dwah:ils")) != -1) {
+	while ((c = getopt(argc, argv, "adh:ilsw")) != -1) {
 		switch (c) {
 		case 'a':
 			doabort = 1;	/* when debugging, do an abort on */
@@ -764,7 +764,7 @@ parseargs(int argc, char *argv[])
 			break;
 #endif
 		default:	/* error */
-			fprintf(stderr,	"usage: rpcbind [-Idwils]\n");
+			fprintf(stderr,	"usage: rpcbind [-adhilsw]\n");
 			exit (1);
 		}
 	}

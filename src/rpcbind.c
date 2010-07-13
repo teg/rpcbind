@@ -77,6 +77,7 @@
 
 int debugging = 0;	/* Tell me what's going on */
 int doabort = 0;	/* When debugging, do an abort on errors */
+int dofork = 1;		/* fork? */
 
 rpcblist_ptr list_rbl;	/* A list of version 3/4 rpcbind services */
 
@@ -213,8 +214,8 @@ main(int argc, char *argv[])
 			printf("\n");
 		}
 #endif
-	} else {
-		if (daemon(0, 0)) 
+	} else if (dofork) {
+		if (daemon(0, 0))
         		err(1, "fork failed");
 	}
 
@@ -740,7 +741,7 @@ parseargs(int argc, char *argv[])
 {
 	int c;
 	oldstyle_local = 1;
-	while ((c = getopt(argc, argv, "adh:ilsw")) != -1) {
+	while ((c = getopt(argc, argv, "adh:ilswf")) != -1) {
 		switch (c) {
 		case 'a':
 			doabort = 1;	/* when debugging, do an abort on */
@@ -767,13 +768,16 @@ parseargs(int argc, char *argv[])
 		case 's':
 			runasdaemon = 1;
 			break;
+		case 'f':
+			dofork = 0;
+			break;
 #ifdef WARMSTART
 		case 'w':
 			warmstart = 1;
 			break;
 #endif
 		default:	/* error */
-			fprintf(stderr,	"usage: rpcbind [-adhilsw]\n");
+			fprintf(stderr,	"usage: rpcbind [-adhilswf]\n");
 			exit (1);
 		}
 	}

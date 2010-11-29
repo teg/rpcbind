@@ -1,4 +1,4 @@
-INCLUDES = -I$(srcdir)/tirpc -DPORTMAP -DINET6 -DVERSION="\"$(VERSION)\"" \
+INCLUDES = $(TIRPC_CFLAGS) -DPORTMAP -DINET6 -DVERSION="\"$(VERSION)\"" \
                                                 -D_GNU_SOURCE -Wall -pipe
 if DEBUG
 INCLUDES +=	-DRPCBIND_DEBUG -DSVC_RUN_DEBUG -DDEBUG_RMTCALL
@@ -23,12 +23,13 @@ rpcbind_SOURCES =       check_bound.c rpcbind.c \
                         rpcbind.h
 
 rpcinfo_SOURCES =       rpcinfo.c
-rpcinfo_LDFLAGS =       -lpthread -ltirpc
-rpcinfo_LDADD   =       $(LIB_TIRPC)
+rpcinfo_LDFLAGS =       -lpthread
+rpcinfo_LDADD   =       $(TIRPC_LIBS)
 
 
-rpcbind_LDFLAGS = -lpthread -ltirpc
-rpcbind_LDADD = $(LIB_TIRPC)
-AM_CPPFLAGS = -I/usr/include/tirpc -DCHECK_LOCAL -DPORTMAP \
+rpcbind_LDFLAGS = -lpthread
+rpcbind_CFLAGS = $(TIRPC_CFLAGS)
+rpcbind_LDADD = $(TIRPC_LIBS)
+AM_CPPFLAGS = -DCHECK_LOCAL -DPORTMAP \
                        -DFACILITY=LOG_MAIL -DSEVERITY=LOG_INFO
      

@@ -46,7 +46,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "config.h"
 #include "rpcbind.h"
 
 #ifndef RPCBIND_STATEDIR

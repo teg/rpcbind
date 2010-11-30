@@ -4,7 +4,8 @@ AM_CPPFLAGS = \
 	-DFACILITY=LOG_MAIL \
 	-DSEVERITY=LOG_INFO \
 	-DINET6 \
-	-DVERSION="\"$(VERSION)\"" \
+	-DRPCBIND_STATEDIR="\"$(statedir)\"" \
+	-DRPCUSER="\"$(rpcuser)\"" \
 	-D_GNU_SOURCE \
 	$(TIRPC_CFLAGS)
 
@@ -35,9 +36,9 @@ rpcbind_SOURCES = \
 	src/security.c \
 	src/util.c \
 	src/warmstart.c
-rpcbind_LDADD = $(TIRPC_LIBS) -lpthread
+rpcbind_LDADD = $(TIRPC_LIBS)
 
 rpcinfo_SOURCES =       src/rpcinfo.c
-rpcinfo_LDADD   =       $(TIRPC_LIBS) -lpthread
+rpcinfo_LDADD   =       $(TIRPC_LIBS)
 
 dist_man8_MANS = man/rpcbind.8

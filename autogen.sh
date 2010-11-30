@@ -36,7 +36,7 @@ if test x"${1}" = x"clean"; then
 fi
 
 aclocal
-libtoolize --force --copy
-autoheader
+#libtoolize --force --copy
+#autoheader
 automake --add-missing --copy --gnu # -Wall
 autoconf # -Wall

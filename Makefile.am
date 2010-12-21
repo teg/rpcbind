@@ -41,4 +41,4 @@ rpcbind_LDADD = $(TIRPC_LIBS)
 rpcinfo_SOURCES =       src/rpcinfo.c
 rpcinfo_LDADD   =       $(TIRPC_LIBS)
 
-dist_man8_MANS = man/rpcbind.8
+dist_man8_MANS = man/rpcbind.8 man/rpcinfo.8

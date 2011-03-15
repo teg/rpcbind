@@ -78,6 +78,7 @@ rpcb_service_4(struct svc_req *rqstp, SVCXPRT *transp)
 	char *result;
 	xdrproc_t xdr_argument, xdr_result;
 	void *(*local) __P((void *, struct svc_req *, SVCXPRT *, rpcvers_t));
+	rpcprog_t setprog = 0;
 
 	rpcbs_procinfo(RPCBVERS_4_STAT, rqstp->rq_proc);
 
@@ -90,7 +91,7 @@ rpcb_service_4(struct svc_req *rqstp, SVCXPRT *transp)
 		if (debugging)
 			fprintf(stderr, "RPCBPROC_NULL\n");
 #endif
-		check_access(transp, rqstp->rq_proc, NULL, RPCBVERS4);
+		check_access(transp, rqstp->rq_proc, 0, RPCBVERS4);
 		(void) svc_sendreply(transp, (xdrproc_t) xdr_void,
 					(char *)NULL);
 		return;
@@ -220,7 +221,13 @@ rpcb_service_4(struct svc_req *rqstp, SVCXPRT *transp)
 			(void) fprintf(stderr, "rpcbind: could not decode\n");
 		return;
 	}
-	if (!check_access(transp, rqstp->rq_proc, &argument, RPCBVERS4)) {
+
+	if (rqstp->rq_proc == RPCBPROC_SET
+	 || rqstp->rq_proc == RPCBPROC_UNSET
+	 || rqstp->rq_proc == RPCBPROC_GETADDR)
+		setprog = argument.rpcbproc_set_4_arg.r_prog;
+
+	if (!check_access(transp, rqstp->rq_proc, setprog, RPCBVERS4)) {
 		svcerr_weakauth(transp);
 		goto done;
 	}

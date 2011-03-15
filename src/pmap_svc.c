@@ -80,7 +80,7 @@ pmap_service(struct svc_req *rqstp, SVCXPRT *xprt)
 		if (debugging)
 			fprintf(stderr, "PMAPPROC_NULL\n");
 #endif
-		check_access(xprt, rqstp->rq_proc, NULL, PMAPVERS);
+		check_access(xprt, rqstp->rq_proc, 0, PMAPVERS);
 		if ((!svc_sendreply(xprt, (xdrproc_t) xdr_void, NULL)) &&
 			debugging) {
 			if (doabort) {
@@ -201,11 +201,11 @@ pmapproc_change(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt, unsigned long
 		  reg.pm_prog, reg.pm_vers);
 #endif
 
-	if (!check_access(xprt, op, &reg, PMAPVERS)) {
+	if (!check_access(xprt, op, reg.pm_prog, PMAPVERS)) {
 		svcerr_weakauth(xprt);
 		return (FALSE);
 	}
-		
+
 	rpcbreg.r_prog = reg.pm_prog;
 	rpcbreg.r_vers = reg.pm_vers;
 
@@ -276,7 +276,7 @@ pmapproc_getport(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 		return (FALSE);
 	}
 
-	if (!check_access(xprt, PMAPPROC_GETPORT, &reg, PMAPVERS)) {
+	if (!check_access(xprt, PMAPPROC_GETPORT, reg.pm_prog, PMAPVERS)) {
 		svcerr_weakauth(xprt);
 		return FALSE;
 	}
@@ -340,7 +340,7 @@ pmapproc_dump(struct svc_req *rqstp /*__unused*/, SVCXPRT *xprt)
 		return (FALSE);
 	}
 
-	if (!check_access(xprt, PMAPPROC_DUMP, NULL, PMAPVERS)) {
+	if (!check_access(xprt, PMAPPROC_DUMP, 0, PMAPVERS)) {
 		svcerr_weakauth(xprt);
 		return FALSE;
 	}

@@ -119,7 +119,7 @@ void rpcbind_abort(void);
 void reap(int);
 void toggle_verboselog(int);
 
-int check_access(SVCXPRT *, rpcproc_t, void *, unsigned int);
+int check_access(SVCXPRT *, rpcproc_t, rpcprog_t, unsigned int);
 int check_callit(SVCXPRT *, struct r_rmtcall_args *, int);
 void logit(int, struct sockaddr *, rpcproc_t, rpcprog_t, const char *);
 int is_loopback(struct netbuf *);

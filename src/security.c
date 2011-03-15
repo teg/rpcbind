@@ -62,34 +62,21 @@ int log_severity = PORTMAP_LOG_FACILITY|PORTMAP_LOG_SEVERITY;
 extern int verboselog;
 
 int 
-check_access(SVCXPRT *xprt, rpcproc_t proc, void *args, unsigned int rpcbvers)
+check_access(SVCXPRT *xprt, rpcproc_t proc, rpcprog_t prog, unsigned int rpcbvers)
 {
 	struct netbuf *caller = svc_getrpccaller(xprt);
 	struct sockaddr *addr = (struct sockaddr *)caller->buf;
 #ifdef LIBWRAP
 	struct request_info req;
 #endif
-	rpcprog_t prog = 0;
-	rpcb *rpcbp;
-	struct pmap *pmap;
 
 	/*
 	 * The older PMAP_* equivalents have the same numbers, so
 	 * they are accounted for here as well.
 	 */
 	switch (proc) {
-	case RPCBPROC_GETADDR:
 	case RPCBPROC_SET:
 	case RPCBPROC_UNSET:
-		if (rpcbvers > PMAPVERS) {
-			rpcbp = (rpcb *)args;
-			prog = rpcbp->r_prog;
-		} else {
-			pmap = (struct pmap *)args;
-			prog = pmap->pm_prog;
-		}
-		if (proc == RPCBPROC_GETADDR)
-			break;
 		if (!insecure && !is_loopback(caller)) {
 #ifdef RPCBIND_DEBUG
 			  if (debugging)
@@ -101,6 +88,7 @@ check_access(SVCXPRT *xprt, rpcproc_t proc, void *args, unsigned int rpcbvers)
 			return 0;
 		}
 		break;
+	case RPCBPROC_GETADDR:
 	case RPCBPROC_CALLIT:
 	case RPCBPROC_INDIRECT:
 	case RPCBPROC_DUMP:

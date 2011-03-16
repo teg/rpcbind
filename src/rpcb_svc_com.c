@@ -1372,10 +1372,13 @@ static char *
 getowner(SVCXPRT *transp, char *owner, size_t ownersize)
 {
 	uid_t uid;
- 
-	if (__rpc_get_local_uid(transp, &uid) < 0)
-		snprintf(owner, ownersize, "unknown");
-	else if (uid == 0)
+
+	if (__rpc_get_local_uid(transp, &uid) < 0) {
+		if (is_localroot(svc_getrpccaller(transp)))
+			snprintf(owner, ownersize, "superuser");
+		else 
+			snprintf(owner, ownersize, "unknown");
+	} else if (uid == 0)
 		snprintf(owner, ownersize, "superuser");
 	else
 		snprintf(owner, ownersize, "%d", uid);  

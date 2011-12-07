@@ -1,0 +1,12 @@
+[Unit]
+Description=RPCbind Server Activation Socket
+Wants=rpcbind.target
+Before=rpcbind.target
+
+[Socket]
+ListenStream=/var/run/rpcbind.sock
+ListenStream=111
+ListenDatagram=111
+
+[Install]
+WantedBy=sockets.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=RPC Bind
+
+[Service]
+ExecStart=@bindir@/rpcbind -w -f
+
+[Install]
+WantedBy=multi-user.target
+Also=rpcbind.socket

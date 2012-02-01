@@ -116,7 +116,7 @@ char *tcptrans;		/* Name of TCP transport */
 char *udp_uaddr;	/* Universal UDP address */
 char *tcp_uaddr;	/* Universal TCP address */
 #endif
-static char servname[] = "rpcbind";
+static char servname[] = "sunrpc";
 static char superuser[] = "superuser";
 
 int main __P((int, char *[]));

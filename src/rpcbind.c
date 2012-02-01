@@ -92,7 +92,12 @@ char *rpcbinduser = NULL;
 /* who to suid to if -s is given */
 #define RUN_AS  "daemon"
 
+#ifdef SYSTEMD
+#define RPCBINDDLOCK "/run/rpcbind.lock"
+#define _PATH_RPCBINDSOCK "/run/rpcbind.sock"
+#else
 #define RPCBINDDLOCK "/var/run/rpcbind.lock"
+#endif
 
 int runasdaemon = 0;
 int insecure = 0;

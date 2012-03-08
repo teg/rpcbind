@@ -236,6 +236,10 @@ main(int argc, char *argv[])
                         syslog(LOG_ERR, "setgid to '%s' (%d) failed: %m", id, p->pw_gid);
                         exit(1);
                 }
+		if (setgroups(0, NULL) == -1) {
+			syslog(LOG_ERR, "dropping supplemental groups failed: %m");
+			exit(1);
+		}
 		if (setuid(p->pw_uid) == -1) {
 			syslog(LOG_ERR, "setuid to '%s' (%d) failed: %m", id, p->pw_uid);
 			exit(1);

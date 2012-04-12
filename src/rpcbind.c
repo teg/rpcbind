@@ -56,6 +56,9 @@
 #include <netinet/in.h>
 #endif
 #include <arpa/inet.h>
+#ifdef SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -285,6 +288,7 @@ init_transport(struct netconfig *nconf)
 	u_int32_t host_addr[4];  /* IPv4 or IPv6 */
 	struct sockaddr_un sun;
 	mode_t oldmask;
+	int n = 0;
         res = NULL;
 
 	if ((nconf->nc_semantics != NC_TPI_CLTS) &&
@@ -304,6 +308,76 @@ init_transport(struct netconfig *nconf)
 	}
 #endif
 
+	if (!__rpc_nconf2sockinfo(nconf, &si)) {
+		syslog(LOG_ERR, "cannot get information for %s",
+		    nconf->nc_netid);
+		return (1);
+	}
+
+#ifdef SYSTEMD
+	n = sd_listen_fds(0);
+	if (n < 0) {
+		syslog(LOG_ERR, "failed to acquire systemd scokets: %s", strerror(-n));
+		return 1;
+	}
+
+	/* Try to find if one of the systemd sockets we were given match
+	 * our netconfig structure. */
+
+	for (fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + n; fd++) {
+		struct __rpc_sockinfo si_other;
+		union {
+			struct sockaddr sa;
+			struct sockaddr_un un;
+			struct sockaddr_in in4;
+			struct sockaddr_in6 in6;
+			struct sockaddr_storage storage;
+		} sa;
+		socklen_t addrlen = sizeof(sa);
+
+		if (!__rpc_fd2sockinfo(fd, &si_other)) {
+			syslog(LOG_ERR, "cannot get information for fd %i", fd);
+			return 1;
+		}
+
+		if (si.si_af != si_other.si_af ||
+                    si.si_socktype != si_other.si_socktype ||
+                    si.si_proto != si_other.si_proto)
+			continue;
+
+		if (getsockname(fd, &sa.sa, &addrlen) < 0) {
+			syslog(LOG_ERR, "failed to query socket name: %s",
+                               strerror(errno));
+			goto error;
+		}
+
+		/* Copy the address */
+		taddr.addr.maxlen = taddr.addr.len = addrlen;
+		taddr.addr.buf = malloc(addrlen);
+		if (taddr.addr.buf == NULL) {
+			syslog(LOG_ERR,
+                               "cannot allocate memory for %s address",
+                               nconf->nc_netid);
+			goto error;
+		}
+		memcpy(taddr.addr.buf, &sa, addrlen);
+
+		my_xprt = (SVCXPRT *)svc_tli_create(fd, nconf, &taddr,
+                          RPC_MAXDATASIZE, RPC_MAXDATASIZE);
+		if (my_xprt == (SVCXPRT *)NULL) {
+			syslog(LOG_ERR, "%s: could not create service",
+                               nconf->nc_netid);
+			goto error;
+		}
+	}
+
+	/* if none of the systemd sockets matched, we set up the socket in
+	 * the normal way:
+	 */
+#endif
+
+	if(my_xprt == (SVCXPRT *)NULL) {
+
 	/*
 	 * XXX - using RPC library internal functions. For NC_TPI_CLTS
 	 * we call this later, for each socket we like to bind.
@@ -314,12 +388,6 @@ init_transport(struct netconfig *nconf)
 			    nconf->nc_netid);
 			return (1);
 		}
-	}
-
-	if (!__rpc_nconf2sockinfo(nconf, &si)) {
-		syslog(LOG_ERR, "cannot get information for %s",
-		    nconf->nc_netid);
-		return (1);
 	}
 
 	if ((strcmp(nconf->nc_netid, "local") == 0) ||
@@ -557,6 +625,7 @@ init_transport(struct netconfig *nconf)
 					nconf->nc_netid);
 			goto error;
 		}
+	}
 	}
 
 #ifdef PORTMAP
